@@ -1,0 +1,79 @@
+[project]
+name = "sourcecodescope"
+version = "0.1.0"
+description = "Visualise any PyTorch model as an interactive, self-contained HTML page."
+readme = "README.md"
+requires-python = ">=3.10,<3.11"
+dependencies = [
+    "torch>=2.7.0",
+]
+
+[dependency-groups]
+dev = [
+    "pylint>=3.3",
+    "pytest>=8.0",
+    "ruff>=0.9",
+    "ty>=0.0.1a1",
+]
+verify = [
+    "joblib>=1.3",
+    "matplotlib>=3.8",
+    "torchvision>=0.22.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/sourcecodescope"]
+
+# RTX 5070 needs the CUDA 12.8 builds of torch (>= 2.7).
+[tool.uv]
+default-groups = ["dev", "verify"]
+environments = ["sys_platform == 'win32'", "sys_platform == 'linux'"]
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cu128" }]
+torchvision = [{ index = "pytorch-cu128" }]
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+src = ["src", "tests", "examples"]
+extend-exclude = ["external"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "N", "SIM", "C4", "PL", "RUF"]
+
+[tool.ruff.lint.pylint]
+# Same threshold as [tool.pylint.design].
+max-args = 10
+
+[tool.pylint.main]
+py-version = "3.10"
+# torch is a C extension: let pylint import it so that members resolve.
+extension-pkg-allow-list = ["torch"]
+
+[tool.pylint.typecheck]
+generated-members = ["torch.*"]
+
+[tool.pylint.format]
+max-line-length = 100
+
+[tool.pylint.design]
+# Thresholds only; no checks are switched off.
+max-args = 10
+max-positional-arguments = 5
+max-attributes = 14
+
+[tool.ty.src]
+exclude = ["external"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
